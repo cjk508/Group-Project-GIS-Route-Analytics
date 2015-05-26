@@ -6,7 +6,7 @@
  */
 
 // ========= config section ================================================
-var url = "/geoserver/ows?"
+var url = "/geoserver/ows?";
 var center = [-121468.12084883929, 7163110.329270016];
 var zoom = 11;
 // =========================================================================
@@ -17,7 +17,7 @@ var mapLayer = new ol.layer.Tile({
 
 var overviewLayer = new ol.layer.Vector({
     source: new ol.source.Vector({
-        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
+        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:details&outputFormat=application/json",
         format: new ol.format.GeoJSON()
     })
 });
