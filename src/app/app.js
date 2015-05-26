@@ -6,19 +6,16 @@
  */
 
 // ========= config section ================================================
-var url = '/geoserver/wfs';
+var url = '/geoserver/ows?';
 var center = [-121468.12084883929, 7163110.329270016];
 var zoom = 11;
 // =========================================================================
 
-//var emergencySource = new ol.source.Vector({
-//    url: url,
-//    params: {'LAYERS': "county" + ':' + "details", 'TILED': true},
-//    format: ''
-//});
-
 var vectorlayer = new ol.layer.Vector({
-    source: new ol.source.Vector({})
+    source: new ol.source.Vector({
+        url: "/geoserver/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=county:details&maxFeatures=1000&outputFormat=application/json",
+        format: new ol.format.GeoJSON()
+    })
 });
 
 // create the OpenLayers Map object
@@ -41,7 +38,3 @@ var map = new ol.Map({
     zoom: zoom
   })
 });
-
-//map.addInteraction(new ol.interaction.Select({
-//    condition: ol.events.condition.mouseMove
-//}));
