@@ -24,8 +24,8 @@ var overviewLayer = new ol.layer.Vector({
 
 var heatmapLayer = new ol.layer.Heatmap({
     source: new ol.source.Vector({
-        url: url + "service=WFS&version=2.0.0&request=GetPropertyValue&valueReference=time_delay&typeName=county:details",
-        format: new ol.format.XML()
+        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
+        format: new ol.format.GeoJSON()
     })
 });
 
@@ -36,7 +36,7 @@ var map = new ol.Map({
   // use the Canvas renderer
   renderer: 'canvas',
   //map layers
-  layers: [mapLayer, overviewLayer],
+  layers: [mapLayer, heatmapLayer],
   // initial center and zoom of the map's view
   view: new ol.View({
     center: center,
