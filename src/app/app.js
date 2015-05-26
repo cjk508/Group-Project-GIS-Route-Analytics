@@ -6,15 +6,26 @@
  */
 
 // ========= config section ================================================
-var url = '/geoserver/ows?';
+var url = "/geoserver/ows?"
 var center = [-121468.12084883929, 7163110.329270016];
 var zoom = 11;
 // =========================================================================
 
-var vectorlayer = new ol.layer.Vector({
+var mapLayer = new ol.layer.Tile({
+        source: new ol.source.MapQuest({layer: 'osm'})
+});
+
+var overviewLayer = new ol.layer.Vector({
     source: new ol.source.Vector({
-        url: "/geoserver/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=county:details&maxFeatures=1000&outputFormat=application/json",
+        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
         format: new ol.format.GeoJSON()
+    })
+});
+
+var heatmapLayer = new ol.layer.Heatmap({
+    source: new ol.source.Vector({
+        url: url + "service=WFS&version=2.0.0&request=GetPropertyValue&valueReference=time_delay&typeName=county:details",
+        format: new ol.format.XML()
     })
 });
 
@@ -24,17 +35,13 @@ var map = new ol.Map({
   target: document.getElementById('map'),
   // use the Canvas renderer
   renderer: 'canvas',
-  layers: [
-    // MapQuest streets
-    new ol.layer.Tile({
-      title: 'Street Map',
-      source: new ol.source.MapQuest({layer: 'osm'})
-    }),
-    vectorlayer
-  ],
+  //map layers
+  layers: [mapLayer, overviewLayer],
   // initial center and zoom of the map's view
   view: new ol.View({
     center: center,
     zoom: zoom
   })
-});
+}).addInteraction(new ol.interaction.Select({
+    condition: ol.events.condition.pointerMove
+}));
