@@ -7,8 +7,8 @@
 
 // ========= config section ================================================
 var url = '/geoserver/ows?';
-var center = [-10764594.758211, 4523072.3184791];
-var zoom = 3;
+var center = [-121468.12084883929, 7163110.329270016];
+var zoom = 11;
 // =========================================================================
 
 // override the axis orientation for WMS GetFeatureInfo
@@ -37,7 +37,6 @@ var map = new ol.Map({
     // MapQuest streets
     new ol.layer.Tile({
       title: 'Street Map',
-      group: "background",
       source: new ol.source.MapQuest({layer: 'osm'})
     }),
 
