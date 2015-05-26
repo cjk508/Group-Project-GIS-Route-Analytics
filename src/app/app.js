@@ -7,10 +7,10 @@
 
 // ========= config section ================================================
 var url = '/geoserver/ows?';
-var featurePrefix = 'usa';
-var featureType = 'states';
-var featureNS = 'http://census.gov';
-var srsName = 'EPSG:900913';
+var featurePrefix = 'county';
+var featureType = 'englandwales';
+var featureNS = 'http://opengeo.org/#county';
+var srsName = 'EPSG:27700';
 var geometryName = 'the_geom';
 var geometryType = 'MultiPolygon';
 var fields = ['STATE_NAME', 'STATE_ABBR'];
@@ -44,6 +44,12 @@ var wmsSource = new ol.source.TileWMS({
   url: url,
   params: {'LAYERS': featurePrefix + ':' + featureType, 'TILED': true},
   serverType: 'geoserver'
+});
+
+var emergencySource = new ol.source.TileWMS({
+    url: url,
+    params: {'LAYERS': "county" + ':' + "details", 'TILED': true},
+    serverType: 'geoserver'
 });
 
 // create a vector layer to contain the feature to be highlighted
@@ -116,7 +122,7 @@ var map = new ol.Map({
     }),
     new ol.layer.Tile({
       title: layerTitle,
-      source: wmsSource
+      source: emergencySource
     }),
     highlight
   ],
@@ -129,47 +135,49 @@ var map = new ol.Map({
 
 // register a single click listener on the map and show a popup
 // based on WMS GetFeatureInfo
-map.on('singleclick', function(evt) {
-  var viewResolution = map.getView().getResolution();
-  var url = wmsSource.getGetFeatureInfoUrl(
-      evt.coordinate, viewResolution, map.getView().getProjection(),
-      {'INFO_FORMAT': infoFormat});
-  if (url) {
-    if (infoFormat == 'text/html') {
-      popup.setPosition(evt.coordinate);
-      popup.setContent('<iframe seamless frameborder="0" src="' + url + '"></iframe>');
-      popup.show();
-    } else {
-      $.ajax({
-        url: url,
-        success: function(data) {
-          var features = format.readFeatures(data);
-          highlight.getSource().clear();
-          if (features && features.length >= 1 && features[0]) {
-            var feature = features[0];
-            var html = '<table class="table table-striped table-bordered table-condensed">';
-            var values = feature.getProperties();
-            var hasContent = false;
-            for (var key in values) {
-              if (key !== 'the_geom' && key !== 'boundedBy') {
-                html += '<tr><td>' + key + '</td><td>' + values[key] + '</td></tr>';
-                hasContent = true;
-              }
-            }
-            if (hasContent === true) {
-              popup.setPosition(evt.coordinate);
-              popup.setContent(html);
-              popup.show();
-            }
-            feature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
-            highlight.getSource().addFeature(feature);
-          } else {
-            popup.hide();
-          }
-        }
-      });
-    }
-  } else {
-    popup.hide();
-  }
-});
+//map.on('singleclick', function(evt) {
+//  var viewResolution = map.getView().getResolution();
+//  var url = wmsSource.getGetFeatureInfoUrl(
+//      evt.coordinate, viewResolution, map.getView().getProjection(),
+//      {'INFO_FORMAT': infoFormat});
+//  if (url) {
+//    if (infoFormat == 'text/html') {
+//      popup.setPosition(evt.coordinate);
+//      popup.setContent('<iframe seamless frameborder="0" src="' + url + '"></iframe>');
+//      popup.show();
+//    } else {
+//      $.ajax({
+//        url: url,
+//        success: function(data) {
+//          var features = format.readFeatures(data);
+//          highlight.getSource().clear();
+//          if (features && features.length >= 1 && features[0]) {
+//            var feature = features[0];
+//            var html = '<table class="table table-striped table-bordered table-condensed">';
+//            var values = feature.getProperties();
+//            var hasContent = false;
+//            for (var key in values) {
+//              if (key !== 'the_geom' && key !== 'boundedBy') {
+//                html += '<tr><td>' + key + '</td><td>' + values[key] + '</td></tr>';
+//                hasContent = true;
+//              }
+//            }
+//            if (hasContent === true) {
+//              popup.setPosition(evt.coordinate);
+//              popup.setContent(html);
+//              popup.show();
+//            }
+//            feature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
+//            highlight.getSource().addFeature(feature);
+//          } else {
+//            popup.hide();
+//          }
+//        }
+//      });
+//    }
+//  } else {
+//    popup.hide();
+//  }
+//});
+
+a6cabb320c0b8bdee923b5d864709bfe9695ac5d
