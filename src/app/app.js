@@ -179,5 +179,3 @@ var map = new ol.Map({
 //    popup.hide();
 //  }
 //});
-
-a6cabb320c0b8bdee923b5d864709bfe9695ac5d
