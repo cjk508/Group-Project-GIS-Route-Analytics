@@ -29,6 +29,31 @@ var heatmapLayer = new ol.layer.Heatmap({
     })
 });
 
+var container = document.getElementById('popup');
+var content = document.getElementById('popup-content');
+var closer = document.getElementById('popup-closer');
+
+/**
+ * Add a click handler to hide the popup.
+ * @return {boolean} Don't follow the href.
+ */
+closer.onclick = function() {
+  overlay.setPosition(undefined);
+  closer.blur();
+  return false;
+};
+
+/**
+ * Create an overlay to anchor the popup to the map.
+ */
+var overlay = new ol.Overlay(/** @type {olx.OverlayOptions} */ ({
+  element: container,
+  autoPan: true,
+  autoPanAnimation: {
+    duration: 250
+  }
+}));
+
 // create the OpenLayers Map object
 var map = new ol.Map({
   // render the map in the 'map' div
@@ -41,7 +66,25 @@ var map = new ol.Map({
   view: new ol.View({
     center: center,
     zoom: zoom
-  })
-}).addInteraction(new ol.interaction.Select({
+  }),
+  overlays: [overlay]
+});
+
+map.addInteraction(new ol.interaction.Select({
     condition: ol.events.condition.pointerMove
 }));
+
+map.on('singleclick', function(evt) {
+container.style.display = "block";
+ map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+      if (feature) {
+        var geometry = feature.getGeometry();
+        var coord = geometry.getCoordinates();
+	content.innerHTML = "<p>Incident details</p><code>Service Id: " + feature.values_.service_id + "<br /> Trip Id: " +
+	feature.values_.trip_id + "<br /> Distance traveled: " + feature.values_.distance_meters + " meters <br/> Time of dispatch: "+
+	feature.values_.time_dispatch + "<br /> Time Arrival: " + feature.values_.time_arrival + "<br/> Delay: " + 
+	feature.values_.time_sec_delayed + " seconds <br />Vehicle type: ND10 HSL Sembcorp Ford Transit <br /> Staff Count: 2</code>";
+        overlay.setPosition(coord);
+      };
+    });
+});
