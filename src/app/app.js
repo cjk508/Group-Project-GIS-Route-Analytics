@@ -168,7 +168,7 @@ map.on('singleclick', function(evt) {
 
         overlay.setPosition(evt.coordinate);
     } else if (found_features){
-        mapPopup(found_features[0]);
+        mapPopup(found_features[0].getId());
     }
 });
 
