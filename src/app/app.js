@@ -55,6 +55,18 @@ var pointsLayer = new ol.layer.Vector({
     source: new ol.source.Vector({
         url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
         format: new ol.format.GeoJSON()
+    }),
+    style: new ol.style.Style({
+        image: new ol.style.Circle({
+            fill: new ol.style.Fill({
+                color: 'rgba(0,0,0, 0.4)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: 'rgb(0,0,0)',
+                width: 1.25
+            }),
+            radius: 10
+        })
     })
 });
 
@@ -140,6 +152,11 @@ map.on('singleclick', function(evt) {
 
     found_features = [];
 
+    if (pointsLayer.getVisible()) {
+        pointsLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
+            found_features.push(feature)
+        });
+    }
 
     if (timeHeatmapLayer.getVisible()) {
         timeHeatmapLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
@@ -149,12 +166,6 @@ map.on('singleclick', function(evt) {
 
     if (journeysVectorLayer.getVisible()) {
         journeysVectorLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
-            found_features.push(feature)
-        });
-    }
-
-    if (pointsLayer.getVisible()) {
-        pointsLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
             found_features.push(feature)
         });
     }
