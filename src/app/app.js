@@ -156,6 +156,17 @@ map.on('singleclick', function(evt) {
     }
 });
 
+map.on('moveend', function(evt) {
+
+    if (this.getView().getZoom() <= 8) {
+        journeysVectorLayer.setVisible(false);
+        journeysTileLayer.setVisible(false);
+    } else {
+        journeysVectorLayer.setVisible(true);
+        journeysTileLayer.setVisible(true);
+    }
+});
+
 function mapPopup(feature){
     content.innerHTML = "<p>Incident details</p><code>Service Id: " + feature.values_.service_id + "<br /> Trip Id: " +
         feature.values_.trip_id + "<br /> Distance traveled: " + feature.values_.distance_meters + " meters <br/> Time of dispatch: " +
