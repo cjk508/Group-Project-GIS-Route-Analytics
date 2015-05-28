@@ -23,7 +23,7 @@ var mapLayer = new ol.layer.Tile({
     })
 });
 
-var overviewLayer = new ol.layer.Vector({
+var journeysLayer = new ol.layer.Vector({
     source: new ol.source.Vector({
         url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:details&outputFormat=application/json",
         format: new ol.format.GeoJSON()
@@ -64,16 +64,34 @@ timeHeatmapLayer.getSource().on('addfeature', function(event) {
     event.feature.set('radius', delay);
 });
 
+function normalise(n){
+    return (n-min_delay)/(max_delay - min_delay)
+}
+
 /**
  * Create an overlay to anchor the popup to the map.
  */
-var overlay = new ol.Overlay(/** @type {olx.OverlayOptions} */ ({
+var overlay = new ol.Overlay({
     element: container,
     autoPan: true,
     autoPanAnimation: {
         duration: 250
     }
-}));
+});
+
+
+container.style.display = "block";
+overlay.setPosition(undefined);
+
+/**
+ * Add a click handler to hide the popup.
+ * @return {boolean} Don't follow the href.
+ */
+closer.onclick = function() {
+    overlay.setPosition(undefined);
+    closer.blur();
+    return false;
+};
 
 // create the OpenLayers Map object
 var map = new ol.Map({
@@ -82,7 +100,7 @@ var map = new ol.Map({
     // use the Canvas renderer
     renderer: 'canvas',
     //map layers
-    layers: [mapLayer, timeHeatmapLayer, overviewLayer],
+    layers: [mapLayer, timeHeatmapLayer, journeysLayer],
     // initial center and zoom of the map's view
     view: new ol.View({
         center: center,
@@ -105,34 +123,29 @@ map.on('singleclick', function(evt) {
     found_features = [];
 
     timeHeatmapLayer.getSource().forEachFeatureInExtent(extent, function(feature){
-       found_features.push(feature);
+        found_features.push(feature);
+    });
+
+    journeysLayer.getSource().forEachFeatureInExtent(extent, function(feature){
+        found_features.push(feature)
     });
 
     if (found_features) {
-        if (found_features.length == 1) {
-            container.style.display = "block";
-            feature = found_features[0];
-            geometry = feature.getGeometry();
-            coord = geometry.getCoordinates();
-            content.innerHTML = "<p>Incident details</p><code>Service Id: " + feature.values_.service_id + "<br /> Trip Id: " +
-                feature.values_.trip_id + "<br /> Distance traveled: " + feature.values_.distance_meters + " meters <br/> Time of dispatch: " +
-                feature.values_.time_dispatch + "<br /> Time Arrival: " + feature.values_.time_arrival + "<br/> Delay: " +
-                feature.values_.time_sec_delayed + " seconds <br />Vehicle type: ND10 HSL Sembcorp Ford Transit <br /> Staff Count: 2</code>";
-            overlay.setPosition(coord);
-        }
+        mapPopup(found_features[0]);
     }
 });
 
-function normalise(n){
-    return (n-min_delay)/(max_delay - min_delay)
-}
+function mapPopup(feature){
+    content.innerHTML = "<p>Incident details</p><code>Service Id: " + feature.values_.service_id + "<br /> Trip Id: " +
+        feature.values_.trip_id + "<br /> Distance traveled: " + feature.values_.distance_meters + " meters <br/> Time of dispatch: " +
+        feature.values_.time_dispatch + "<br /> Time Arrival: " + feature.values_.time_arrival + "<br/> Delay: " +
+        feature.values_.time_sec_delayed + " seconds <br />Vehicle type: ND10 HSL Sembcorp Ford Transit <br /> Staff Count: 2</code>";
 
-/**
- * Add a click handler to hide the popup.
- * @return {boolean} Don't follow the href.
- */
-closer.onclick = function() {
-    overlay.setPosition(undefined);
-    closer.blur();
-    return false;
-};
+    coords = feature.getGeometry().getCoordinates();
+
+    if (Array.isArray(coords[0])) {
+        overlay.setPosition(coords[coords.length -1]);
+    } else {
+        overlay.setPosition(feature.getGeometry().getCoordinates());
+    }
+}
