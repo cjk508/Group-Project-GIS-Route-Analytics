@@ -23,10 +23,18 @@ var mapLayer = new ol.layer.Tile({
     })
 });
 
-var journeysLayer = new ol.layer.Vector({
+var journeysVectorLayer = new ol.layer.Vector({
     source: new ol.source.Vector({
         url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:details&outputFormat=application/json",
         format: new ol.format.GeoJSON()
+    })
+});
+
+var journeysTileLayer = new ol.layer.Tile({
+    source: new ol.source.TileWMS({
+        url: url,
+        params: {'LAYERS': "county:details", 'TILED': true},
+        servertype: 'geoserver'
     })
 });
 
@@ -100,7 +108,7 @@ var map = new ol.Map({
     // use the Canvas renderer
     renderer: 'canvas',
     //map layers
-    layers: [mapLayer, timeHeatmapLayer, journeysLayer],
+    layers: [mapLayer, timeHeatmapLayer, journeysTileLayer],
     // initial center and zoom of the map's view
     view: new ol.View({
         center: center,
@@ -126,11 +134,23 @@ map.on('singleclick', function(evt) {
         found_features.push(feature);
     });
 
-    journeysLayer.getSource().forEachFeatureInExtent(extent, function(feature){
+    journeysVectorLayer.getSource().forEachFeatureInExtent(extent, function(feature){
         found_features.push(feature)
     });
 
-    if (found_features) {
+    if (found_features.length > 1) {
+        content.innerHTML = "<p>Select an Incident</p>";
+
+        found_features.forEach(function(feature){
+            content.innerHTML = content.innerHTML + "<code><a>" + feature.values_.trip_id + "</a></code><br/>";
+
+            content.getElementsByTagName('a')[content.getElementsByTagName('a').length -1].onclick = function(){
+                mapPopup(feature);
+            };
+        });
+
+        overlay.setPosition(evt.coordinate);
+    } else if (found_features){
         mapPopup(found_features[0]);
     }
 });
