@@ -16,6 +16,9 @@ var content = document.getElementById('popup-content');
 var closer = document.getElementById('popup-closer');
 // =========================================================================
 
+//setup feature id map for popups
+var featureIdMap = {};
+
 var mapLayer = new ol.layer.Tile({
     source: new ol.source.TileWMS({
         url: url,
@@ -143,11 +146,7 @@ map.on('singleclick', function(evt) {
         content.innerHTML = "<p>Select an Incident</p>";
 
         found_features.forEach(function(feature){
-            content.innerHTML = content.innerHTML + "<code><a>" + feature.values_.trip_id + "</a></code><br/>";
-
-            content.getElementsByTagName('a')[content.getElementsByTagName('a').length -1].onclick = function(){
-                mapPopup(feature);
-            };
+            content.innerHTML = content.innerHTML + "<code><a onclick='mapPopup(\"" + feature.getId() +"\")'>" + feature.values_.trip_id + "</a></code><br/>";
         });
 
         overlay.setPosition(evt.coordinate);
@@ -167,7 +166,10 @@ map.on('moveend', function(evt) {
     }
 });
 
-function mapPopup(feature){
+function mapPopup(featureid){
+
+    feature = getFeatureById(featureid);
+
     content.innerHTML = "<p>Incident details</p><code>Service Id: " + feature.values_.service_id + "<br /> Trip Id: " +
         feature.values_.trip_id + "<br /> Distance traveled: " + feature.values_.distance_meters + " meters <br/> Time of dispatch: " +
         feature.values_.time_dispatch + "<br /> Time Arrival: " + feature.values_.time_arrival + "<br/> Delay: " +
@@ -180,4 +182,17 @@ function mapPopup(feature){
     } else {
         overlay.setPosition(feature.getGeometry().getCoordinates());
     }
+}
+
+function getFeatureById(featureId) {
+    if ($.isEmptyObject(featureIdMap)){
+        journeysVectorLayer.getSource().getFeatures().forEach(function(feature) {
+            featureIdMap[feature.getId()] = feature;
+        });
+        timeHeatmapLayer.getSource().getFeatures().forEach(function(feature){
+            featureIdMap[feature.getId()] = feature;
+        });
+    }
+
+    return featureIdMap[featureId];
 }
