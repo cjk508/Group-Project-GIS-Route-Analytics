@@ -91,23 +91,36 @@ var map = new ol.Map({
     overlays: [overlay]
 });
 
-map.addInteraction(new ol.interaction.Select({
-    condition: ol.events.condition.pointerMove
-}));
-
 map.on('singleclick', function(evt) {
-    container.style.display = "block";
-    map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
-        if (feature) {
-            var geometry = feature.getGeometry();
-            var coord = geometry.getCoordinates();
+
+    closer.click();
+
+    pixel = evt.pixel;
+
+    topright = [pixel[0] + 30, pixel[1] + 30];
+    bottomleft = [pixel[0] - 30, pixel[1] - 30];
+
+    extent = ol.extent.boundingExtent([map.getCoordinateFromPixel(topright), map.getCoordinateFromPixel(bottomleft)]);
+
+    found_features = [];
+
+    timeHeatmapLayer.getSource().forEachFeatureInExtent(extent, function(feature){
+       found_features.push(feature);
+    });
+
+    if (found_features) {
+        if (found_features.length == 1) {
+            container.style.display = "block";
+            feature = found_features[0];
+            geometry = feature.getGeometry();
+            coord = geometry.getCoordinates();
             content.innerHTML = "<p>Incident details</p><code>Service Id: " + feature.values_.service_id + "<br /> Trip Id: " +
-                feature.values_.trip_id + "<br /> Distance traveled: " + feature.values_.distance_meters + " meters <br/> Time of dispatch: "+
+                feature.values_.trip_id + "<br /> Distance traveled: " + feature.values_.distance_meters + " meters <br/> Time of dispatch: " +
                 feature.values_.time_dispatch + "<br /> Time Arrival: " + feature.values_.time_arrival + "<br/> Delay: " +
                 feature.values_.time_sec_delayed + " seconds <br />Vehicle type: ND10 HSL Sembcorp Ford Transit <br /> Staff Count: 2</code>";
             overlay.setPosition(coord);
         }
-    });
+    }
 });
 
 function normalise(n){
