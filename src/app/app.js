@@ -15,6 +15,13 @@ var mapLayer = new ol.layer.Tile({
         source: new ol.source.MapQuest({layer: 'osm'})
 });
 
+var greyMapLayer = new ol.layer.Tile({
+    source: new ol.source.TileWMS({
+        url: url,
+        params : {"LAYERS": "county:grayMap"}
+    })
+});
+
 var overviewLayer = new ol.layer.Vector({
     source: new ol.source.Vector({
         url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:details&outputFormat=application/json",
@@ -61,7 +68,7 @@ var map = new ol.Map({
   // use the Canvas renderer
   renderer: 'canvas',
   //map layers
-  layers: [mapLayer, heatmapLayer],
+  layers: [greyMapLayer, heatmapLayer],
   // initial center and zoom of the map's view
   view: new ol.View({
     center: center,
