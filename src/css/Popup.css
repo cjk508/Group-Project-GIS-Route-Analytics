@@ -45,3 +45,11 @@
 .ol-popup table {
   margin-bottom: 0px;
 }
+
+.popup-content {
+    padding-right: 15px;
+}
+
+.feature-link{
+    cursor: pointer;
+}

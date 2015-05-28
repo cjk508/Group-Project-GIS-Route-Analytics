@@ -146,7 +146,7 @@ map.on('singleclick', function(evt) {
         content.innerHTML = "<p>Select an Incident</p>";
 
         found_features.forEach(function(feature){
-            content.innerHTML = content.innerHTML + "<code><a onclick='mapPopup(\"" + feature.getId() +"\")'>" + feature.values_.trip_id + "</a></code><br/>";
+            content.innerHTML = content.innerHTML + "<code><a class='feature-link' onclick='mapPopup(\"" + feature.getId() +"\")'>" + feature.values_.trip_id + "</a></code><br/>";
         });
 
         overlay.setPosition(evt.coordinate);
