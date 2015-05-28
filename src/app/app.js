@@ -51,6 +51,13 @@ var timeHeatmapLayer = new ol.layer.Heatmap({
     shadow: 500
 });
 
+var pointsLayer = new ol.layer.Vector({
+    source: new ol.source.Vector({
+        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
+        format: new ol.format.GeoJSON()
+    })
+});
+
 var densityHeatmapLayer = new ol.layer.Heatmap({
     source: new ol.source.Vector({
         url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
@@ -91,7 +98,6 @@ var overlay = new ol.Overlay({
     }
 });
 
-
 container.style.display = "block";
 overlay.setPosition(undefined);
 
@@ -112,7 +118,7 @@ var map = new ol.Map({
     // use the Canvas renderer
     renderer: 'canvas',
     //map layers
-    layers: [mapLayer, timeHeatmapLayer, journeysTileLayer, journeysVectorLayer],
+    layers: [mapLayer, timeHeatmapLayer, journeysTileLayer, journeysVectorLayer, pointsLayer],
     // initial center and zoom of the map's view
     view: new ol.View({
         center: center,
@@ -134,13 +140,24 @@ map.on('singleclick', function(evt) {
 
     found_features = [];
 
-    timeHeatmapLayer.getSource().forEachFeatureInExtent(extent, function(feature){
-        found_features.push(feature);
-    });
 
-    journeysVectorLayer.getSource().forEachFeatureInExtent(extent, function(feature){
-        found_features.push(feature)
-    });
+    if (timeHeatmapLayer.getVisible()) {
+        timeHeatmapLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
+            found_features.push(feature);
+        });
+    }
+
+    if (journeysVectorLayer.getVisible()) {
+        journeysVectorLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
+            found_features.push(feature)
+        });
+    }
+
+    if (pointsLayer.getVisible()) {
+        pointsLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
+            found_features.push(feature)
+        });
+    }
 
     if (found_features.length > 1) {
         content.innerHTML = "<p>Select an Incident</p>";
@@ -157,12 +174,21 @@ map.on('singleclick', function(evt) {
 
 map.on('moveend', function(evt) {
 
-    if (this.getView().getZoom() <= 8) {
+    if (this.getView().getZoom() <= 8 ) {
         journeysVectorLayer.setVisible(false);
         journeysTileLayer.setVisible(false);
+        timeHeatmapLayer.setVisible(true);
+        pointsLayer.setVisible(false);
+    } else if(this.getView().getZoom() <= 12){
+        journeysVectorLayer.setVisible(true);
+        journeysTileLayer.setVisible(true);
+        timeHeatmapLayer.setVisible(false);
+        pointsLayer.setVisible(false);
     } else {
         journeysVectorLayer.setVisible(true);
         journeysTileLayer.setVisible(true);
+        timeHeatmapLayer.setVisible(false);
+        pointsLayer.setVisible(true);
     }
 });
 
@@ -190,6 +216,9 @@ function getFeatureById(featureId) {
             featureIdMap[feature.getId()] = feature;
         });
         timeHeatmapLayer.getSource().getFeatures().forEach(function(feature){
+            featureIdMap[feature.getId()] = feature;
+        });
+        pointsLayer.getSource().getFeatures().forEach(function(feature){
             featureIdMap[feature.getId()] = feature;
         });
     }
