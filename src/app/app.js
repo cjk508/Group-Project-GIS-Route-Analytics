@@ -26,7 +26,35 @@ var heatmapLayer = new ol.layer.Heatmap({
     source: new ol.source.Vector({
         url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
         format: new ol.format.GeoJSON()
-    })
+    }),
+    radius: 10,
+    shadow: 500
+});
+
+var min_delay = 9999999;//Number.POSITIVE_INFINITY
+var max_delay = 0; //
+
+function normalise(n){
+	return (n-min_delay)/(max_delay - min_delay)
+}
+
+heatmapLayer.getSource().on('change', function(evt){
+  var source = evt.target;
+  if (source.getState() === 'ready') {
+     source.getFeatures().forEach(function(feature){
+	var delay = feature.get('time_sec_delayed');
+	if(delay< min_delay) min_delay = delay;
+	if(delay > max_delay) max_delay = delay;
+});
+
+  }
+});
+
+
+heatmapLayer.getSource().on('addfeature', function(event) {
+  var delay = event.feature.get('time_sec_delayed');
+  event.feature.set('weight', normalise(delay));
+  event.feature.set('radius', delay);
 });
 
 var container = document.getElementById('popup');
