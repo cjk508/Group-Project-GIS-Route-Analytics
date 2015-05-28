@@ -27,7 +27,8 @@ var journeysVectorLayer = new ol.layer.Vector({
     source: new ol.source.Vector({
         url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:details&outputFormat=application/json",
         format: new ol.format.GeoJSON()
-    })
+    }),
+    opacity: 0
 });
 
 var journeysTileLayer = new ol.layer.Tile({
@@ -108,7 +109,7 @@ var map = new ol.Map({
     // use the Canvas renderer
     renderer: 'canvas',
     //map layers
-    layers: [mapLayer, timeHeatmapLayer, journeysTileLayer],
+    layers: [mapLayer, timeHeatmapLayer, journeysTileLayer, journeysVectorLayer],
     // initial center and zoom of the map's view
     view: new ol.View({
         center: center,
