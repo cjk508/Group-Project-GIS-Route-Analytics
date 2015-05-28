@@ -82,7 +82,7 @@ var map = new ol.Map({
     // use the Canvas renderer
     renderer: 'canvas',
     //map layers
-    layers: [mapLayer, timeHeatmapLayer],
+    layers: [mapLayer, timeHeatmapLayer, overviewLayer],
     // initial center and zoom of the map's view
     view: new ol.View({
         center: center,
