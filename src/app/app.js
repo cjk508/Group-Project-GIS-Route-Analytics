@@ -65,7 +65,7 @@ var pointsLayer = new ol.layer.Vector({
                 color: 'rgb(0,0,0)',
                 width: 1.25
             }),
-            radius: 10
+            radius: 15
         })
     })
 });
@@ -145,41 +145,50 @@ map.on('singleclick', function(evt) {
 
     pixel = evt.pixel;
 
-    topright = [pixel[0] + 30, pixel[1] + 30];
-    bottomleft = [pixel[0] - 30, pixel[1] - 30];
+    topright = [pixel[0] + 15, pixel[1] + 15];
+    bottomleft = [pixel[0] - 15, pixel[1] - 15];
 
     extent = ol.extent.boundingExtent([map.getCoordinateFromPixel(topright), map.getCoordinateFromPixel(bottomleft)]);
 
-    found_features = [];
+    if (pointsLayer.getVisible() && pointsLayer.getSource().getFeaturesInExtent(extent).length == 1 ){
 
-    if (pointsLayer.getVisible()) {
-        pointsLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
-            found_features.push(feature)
-        });
-    }
+        feature = pointsLayer.getSource().getFeaturesInExtent(extent)[0];
 
-    if (timeHeatmapLayer.getVisible()) {
-        timeHeatmapLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
-            found_features.push(feature);
-        });
-    }
+        mapPopup(feature.getId());
 
-    if (journeysVectorLayer.getVisible()) {
-        journeysVectorLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
-            found_features.push(feature)
-        });
-    }
+    } else {
 
-    if (found_features.length > 1) {
-        content.innerHTML = "<p>Select an Incident</p>";
+        found_features = [];
 
-        found_features.forEach(function(feature){
-            content.innerHTML = content.innerHTML + "<code><a class='feature-link' onclick='mapPopup(\"" + feature.getId() +"\")'>" + feature.values_.trip_id + "</a></code><br/>";
-        });
+        if (pointsLayer.getVisible()) {
+            pointsLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
+                found_features.push(feature);
+            });
+        }
 
-        overlay.setPosition(evt.coordinate);
-    } else if (found_features){
-        mapPopup(found_features[0].getId());
+        if (timeHeatmapLayer.getVisible()) {
+            timeHeatmapLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
+                found_features.push(feature);
+            });
+        }
+
+        if (journeysVectorLayer.getVisible()) {
+            journeysVectorLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
+                found_features.push(feature)
+            });
+        }
+
+        if (found_features.length > 1) {
+            content.innerHTML = "<p>Select an Incident</p>";
+
+            found_features.forEach(function (feature) {
+                content.innerHTML = content.innerHTML + "<code><a class='feature-link' onclick='mapPopup(\"" + feature.getId() + "\")'>" + feature.values_.trip_id + "</a></code><br/>";
+            });
+
+            overlay.setPosition(evt.coordinate);
+        } else if (found_features.length == 1) {
+            mapPopup(found_features[0].getId());
+        }
     }
 });
 
