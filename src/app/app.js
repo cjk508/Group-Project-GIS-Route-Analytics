@@ -14,6 +14,7 @@ var max_delay = Number.NEGATIVE_INFINITY;
 var container = document.getElementById('popup');
 var content = document.getElementById('popup-content');
 var closer = document.getElementById('popup-closer');
+var detailsLayerName = "details";
 // =========================================================================
 
 //setup feature id map for popups
@@ -28,7 +29,7 @@ var mapLayer = new ol.layer.Tile({
 
 var journeysVectorLayer = new ol.layer.Vector({
     source: new ol.source.Vector({
-        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:details&outputFormat=application/json",
+        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:" + detailsLayerName + "&outputFormat=application/json",
         format: new ol.format.GeoJSON()
     }),
     opacity: 0
@@ -37,7 +38,7 @@ var journeysVectorLayer = new ol.layer.Vector({
 var journeysTileLayer = new ol.layer.Tile({
     source: new ol.source.TileWMS({
         url: url,
-        params: {'LAYERS': "county:details", 'TILED': true},
+        params: {'LAYERS': "county:" + detailsLayerName, 'TILED': true},
         servertype: 'geoserver'
     })
 });
@@ -142,9 +143,9 @@ var map = new ol.Map({
 map.on('singleclick', function(evt) {
 
     closer.click();
-
+    journeysTileLayer.getSource().updateParams({"FEATUREID": ""});
     pixel = evt.pixel;
-
+    
     topright = [pixel[0] + 15, pixel[1] + 15];
     bottomleft = [pixel[0] - 15, pixel[1] - 15];
 
@@ -180,9 +181,15 @@ map.on('singleclick', function(evt) {
 
         if (found_features.length > 1) {
             content.innerHTML = "<p>Select an Incident</p>";
-
+            
+            var added = [];
             found_features.forEach(function (feature) {
-                content.innerHTML = content.innerHTML + "<code><a class='feature-link' onclick='mapPopup(\"" + feature.getId() + "\")'>" + feature.values_.trip_id + "</a></code><br/>";
+                var id = feature.get('trip_id')
+                if( added.indexOf(id) < 0){
+                    added.push(id);
+                    content.innerHTML = content.innerHTML + "<code><a class='feature-link' onclick='mapPopup(\"" + feature.getId() + "\")'>" + feature.values_.trip_id + "</a></code><br/>";
+                
+                }
             });
 
             overlay.setPosition(evt.coordinate);
@@ -222,12 +229,13 @@ function mapPopup(featureid){
         feature.get("time_sec_delayed") + " seconds <br />Vehicle type: ND10 HSL Sembcorp Ford Transit <br /> Staff Count: 2</code>";
 
     coords = feature.getGeometry().getCoordinates();
-
+    
     if (Array.isArray(coords[0])) {
         overlay.setPosition(coords[coords.length -1]);
     } else {
         overlay.setPosition(feature.getGeometry().getCoordinates());
     }
+    updateTripsForId(featureid);
 }
 
 function getFeatureById(featureId) {
@@ -244,6 +252,18 @@ function getFeatureById(featureId) {
     }
 
     return featureIdMap[featureId];
+}
+
+function updateTripsForId(tripIdFull){
+    
+    var ids = [];
+    journeysVectorLayer.getSource().getFeatures().forEach(function(element){
+        var tripId = element.getId().substring(0, element.getId().lastIndexOf('.'));
+        if(tripIdFull.indexOf(tripId) > -1){
+            ids.push(element.getId());
+        }
+    });
+    journeysTileLayer.getSource().updateParams({"FEATUREID": ids.join()});
 }
 
 pointsLayer.getSource().once("change", function() {
