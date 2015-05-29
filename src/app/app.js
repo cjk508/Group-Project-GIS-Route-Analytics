@@ -216,10 +216,10 @@ function mapPopup(featureid){
 
     feature = getFeatureById(featureid);
 
-    content.innerHTML = "<p>Incident details</p><code>Service Id: " + feature.values_.service_id + "<br /> Trip Id: " +
-        feature.values_.trip_id + "<br /> Distance traveled: " + feature.values_.distance_meters + " meters <br/> Time of dispatch: " +
-        feature.values_.time_dispatch + "<br /> Time Arrival: " + feature.values_.time_arrival + "<br/> Delay: " +
-        feature.values_.time_sec_delayed + " seconds <br />Vehicle type: ND10 HSL Sembcorp Ford Transit <br /> Staff Count: 2</code>";
+    content.innerHTML = "<p>Incident details</p><code>Service Id: " + feature.get("service_id") + "<br /> Trip Id: " +
+        feature.get("trip_id") + "<br /> Distance traveled: " + feature.get("distance_meters") + " meters <br/> Time of dispatch: " +
+        feature.get("time_dispatch") + "<br /> Time Arrival: " + feature.get("time_arrival") + "<br/> Delay: " +
+        feature.get("time_sec_delayed") + " seconds <br />Vehicle type: ND10 HSL Sembcorp Ford Transit <br /> Staff Count: 2</code>";
 
     coords = feature.getGeometry().getCoordinates();
 
@@ -244,4 +244,59 @@ function getFeatureById(featureId) {
     }
 
     return featureIdMap[featureId];
+}
+
+pointsLayer.getSource().once("change", function() {
+
+    var total_delay_time = 0;
+    var total_distance = 0;
+    var min_distance = Number.POSITIVE_INFINITY;
+    var max_distance = Number.NEGATIVE_INFINITY;
+    var seen_service_ids = [];
+    var total_trips = 0;
+
+    pointsLayer.getSource().getFeatures().forEach(function(feature) {
+        total_delay_time += feature.get("time_sec_delayed");
+        total_distance += feature.get("distance_meters");
+
+        if (feature.get("distance_meters") < min_distance) {
+            min_distance = feature.get("distance_meters");
+        }
+
+        if (feature.get("distance_meters") > max_distance) {
+            max_distance = feature.get("distance_meters");
+        }
+
+        if (seen_service_ids.indexOf(feature.get("service_id")) == -1) {
+            seen_service_ids.push(feature.get("service_id"))
+        }
+
+        total_trips++;
+    });
+
+    mean_delay_time = total_delay_time / pointsLayer.getSource().getFeatures().length;
+
+    $("#statistics-message").dialog({
+        modal: true,
+        buttons: {
+            OK: function() {
+                $(this).dialog("close");
+            }
+        },
+        autoOpen:false,
+        width: 'auto'
+    }).html("<p>Mean Delay Time: " + Math.round(mean_delay_time) + " seconds</p>" +
+        "<p>Minimum Delay Time: " + Math.round(min_delay) + " seconds</p>" +
+        "<p>Maximum Delay Time: " + Math.round(max_delay) + " seconds</p>" +
+        "<p>Total Distance: " + Math.round(total_distance) / 1000 + " km</p>" +
+        "<p>Minimum Distance: " + Math.round(min_distance) / 1000 + " km</p>" +
+        "<p>Maximum Distance: " + Math.round(max_distance) / 1000 + " km</p>" +
+        "<p>Total Services: " + seen_service_ids.length + "</p>" +
+        "<p>Total Trips: " + total_trips +  "</p>" +
+        "<p>Mean Trips per Service: " + Math.round(total_trips / seen_service_ids.length) + "</p>"
+    )
+});
+
+function displayStatistics(){
+    $("#statistics-message").dialog("open")
 }
