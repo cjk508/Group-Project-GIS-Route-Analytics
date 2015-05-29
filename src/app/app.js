@@ -180,9 +180,14 @@ map.on('singleclick', function(evt) {
 
         if (found_features.length > 1) {
             content.innerHTML = "<p>Select an Incident</p>";
-
+            
+            var added = [];
             found_features.forEach(function (feature) {
-                content.innerHTML = content.innerHTML + "<code><a class='feature-link' onclick='mapPopup(\"" + feature.getId() + "\")'>" + feature.values_.trip_id + "</a></code><br/>";
+                var id = feature.get('trip_id')
+                if( added.indexOf(id) < 0){
+                    added.push(id);
+                    content.innerHTML = content.innerHTML + "<code><a class='feature-link' onclick='mapPopup(\"" + feature.getId() + "\")'>" + feature.values_.trip_id + "</a></code><br/>";
+                }
             });
 
             overlay.setPosition(evt.coordinate);
@@ -245,3 +250,4 @@ function getFeatureById(featureId) {
 
     return featureIdMap[featureId];
 }
+
