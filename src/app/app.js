@@ -19,11 +19,19 @@ var detailsLayerName = "details";
 var stringMap = { 'overview': 'Incident', 'details': 'Incident detail' };
 
 // =========================================================================
-
+$('.ol-popup').draggable();
 //setup feature id map for popups
 var featureIdMap = {};
 var featureIdSelected = "";
-var featuresSelected = [];
+var featuresSelectedSource = new ol.source.Vector();
+
+//Needed for the circle and line pin
+var point = null;
+var line = null;
+
+//
+// Tile Layer
+//
 
 var mapLayer = new ol.layer.Tile({
     source: new ol.source.TileWMS({
@@ -101,10 +109,9 @@ var densityHeatmapLayer = new ol.layer.Heatmap({
     }),
 });
 
-
-/**
- * Create an overlay to anchor the popup to the map.
- */
+//
+// Misc
+//
 var overlay = new ol.Overlay({
     element: container,
     autoPan: true,
@@ -114,7 +121,24 @@ var overlay = new ol.Overlay({
 });
 overlay.setPosition(undefined);
 
+var imageStyle = new ol.style.Circle({
+  radius: 5,
+  fill: null,
+  stroke: new ol.style.Stroke({
+    color: 'rgba(255,0,0,0.9)',
+    width: 1
+  })
+});
+
+var strokeStyle = new ol.style.Stroke({
+  color: 'rgba(255,0,0,0.9)',
+  width: 1
+});
+
+
+//
 // create the OpenLayers Map object
+//
 var map = new ol.Map({
     // render the map in the 'map' div
     target: document.getElementById('map'),
@@ -204,12 +228,7 @@ map.on('singleclick', function(evt) {
         
         if(featureIdSelected)
         {
-            var mainFeature = featureIdSelected.substring(0, featureIdSelected.lastIndexOf('.'));
-            
-            //found_features = found_features.filter(function(e){
-            //    return e.getId().startsWith(mainFeature);
-            //});
-            found_features = [getClosestSelectedFeature(map.getCoordinateFromPixel(pixel)) ];
+            found_features = [featuresSelectedSource.getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel)) ];
         }
         
         if (found_features.length > 1) {
@@ -253,6 +272,26 @@ map.on('singleclick', function(evt) {
 //        pointsLayer.setVisible(true);
 //    }
 //});
+
+map.on('pointermove', function(evt) {
+  if (evt.dragging) {
+    return;
+  }
+  var coordinate = map.getEventCoordinate(evt.originalEvent);
+  displaySnap(coordinate);
+});
+
+map.on('postcompose', function(evt) {
+  var vectorContext = evt.vectorContext;
+  if (point !== null) {
+    vectorContext.setImageStyle(imageStyle);
+    vectorContext.drawPointGeometry(point);
+  }
+  if (line !== null) {
+    vectorContext.setFillStrokeStyle(null, strokeStyle);
+    vectorContext.drawLineStringGeometry(line);
+  }
+});
 
 timeHeatmapLayer.getSource().on('change', function(evt){
     var source = evt.target;
@@ -373,7 +412,7 @@ function updateTripsForId(tripIdFull){
         var tripId = element.getId().substring(0, element.getId().lastIndexOf('.'));
         if(tripIdFull.indexOf(tripId) > -1){
             ids.push(element.getId());
-            featuresSelected.push(element);
+            featuresSelectedSource.addFeature(element);
         }
     });
     journeysTileLayer.getSource().updateParams({"FEATUREID": ids.join()});
@@ -385,24 +424,11 @@ function displayStatistics(){
 
 function resetFeature(){
     featureIdSelected = "";
-    featuresSelected = [];
+    featuresSelectedSource = new ol.source.Vector();
     journeysTileLayer.getSource().updateParams({"FEATUREID": ""});
     closer.click();
 }
 
-function getClosestSelectedFeature(coord){
-    var closest = Number.POSITIVE_INFINITY;
-    var closestFeatureIndex = -1;
-    featuresSelected.forEach(function(feature, index){
-        var fCoords = feature.getGeometry().getFlatCoordinates();
-        var distance = ol.sphere.WGS84.haversineDistance([fCoords[0], fCoords[1]],coord);
-        if(distance < closest) {
-            closest = distance;
-            closestFeatureIndex = index;
-        }
-    });
-    return featuresSelected[closestFeatureIndex];
-}
 
 function normalise(n){
     return (n-min_delay)/(max_delay - min_delay)
@@ -416,4 +442,30 @@ closer.onclick = function() {
     overlay.setPosition(undefined);
     closer.blur();
     return false;
+};
+
+//
+// FML
+//
+var displaySnap = function(coordinate) {
+  var closestFeature = featuresSelectedSource.getClosestFeatureToCoordinate(coordinate);
+  if (closestFeature === null) {
+    point = null;
+    line = null;
+  } else {
+    var geometry = closestFeature.getGeometry();
+    var closestPoint = geometry.getClosestPoint(coordinate);
+    if (point === null) {
+      point = new ol.geom.Point(closestPoint);
+    } else {
+      point.setCoordinates(closestPoint);
+    }
+    var coordinates = [coordinate, [closestPoint[0], closestPoint[1]]];
+    if (line === null) {
+      line = new ol.geom.LineString(coordinates);
+    } else {
+      line.setCoordinates(coordinates);
+    }
+  }
+  map.render();
 };
