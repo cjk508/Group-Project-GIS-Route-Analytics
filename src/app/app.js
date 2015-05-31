@@ -3,6 +3,7 @@
  *
  * @require Popup.js
  * @require LayersControl.js
+ * @require FunctionExecuteControl.js
  */
 
 // ========= config section ================================================
@@ -15,10 +16,14 @@ var container = document.getElementById('popup');
 var content = document.getElementById('popup-content');
 var closer = document.getElementById('popup-closer');
 var detailsLayerName = "details";
+var stringMap = { 'overview': 'Incident', 'details': 'Incident detail' };
+
 // =========================================================================
 
 //setup feature id map for popups
 var featureIdMap = {};
+var featureIdSelected = "";
+var featuresSelected = [];
 
 var mapLayer = new ol.layer.Tile({
     source: new ol.source.TileWMS({
@@ -137,13 +142,22 @@ var map = new ol.Map({
         center: center,
         zoom: zoom
     }),
-    overlays: [overlay]
+    overlays: [overlay],
+    controls: ol.control.defaults({
+                attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+                  collapsible: false
+                })
+              }).extend([new app.FunctionExecuteControl({
+        name:  "R",
+        title: "Reset feature selection",
+        func: resetFeature}
+    )])
 });
 
 map.on('singleclick', function(evt) {
 
     closer.click();
-    journeysTileLayer.getSource().updateParams({"FEATUREID": ""});
+
     pixel = evt.pixel;
     
     topright = [pixel[0] + 15, pixel[1] + 15];
@@ -161,11 +175,11 @@ map.on('singleclick', function(evt) {
 
         found_features = [];
 
-        if (pointsLayer.getVisible()) {
-            pointsLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
-                found_features.push(feature);
-            });
-        }
+//        if (pointsLayer.getVisible()) {
+//            pointsLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
+//                found_features.push(feature);
+//            });
+//        }
 
         if (timeHeatmapLayer.getVisible()) {
             timeHeatmapLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
@@ -178,7 +192,17 @@ map.on('singleclick', function(evt) {
                 found_features.push(feature)
             });
         }
-
+        
+        if(featureIdSelected)
+        {
+            var mainFeature = featureIdSelected.substring(0, featureIdSelected.lastIndexOf('.'));
+            
+            //found_features = found_features.filter(function(e){
+            //    return e.getId().startsWith(mainFeature);
+            //});
+            found_features = [getClosestSelectedFeature(map.getCoordinateFromPixel(pixel)) ];
+        }
+        
         if (found_features.length > 1) {
             content.innerHTML = "<p>Select an Incident</p>";
             
@@ -186,15 +210,17 @@ map.on('singleclick', function(evt) {
             found_features.forEach(function (feature) {
                 var id = feature.get('trip_id')
                 if( added.indexOf(id) < 0){
+                    var typeString = stringMap[feature.getId().substring(0, feature.getId().indexOf('.'))];
+                    content.innerHTML = content.innerHTML + "<code><a class='feature-link' onclick='mapPopup(\"" + feature.getId() + "\")'>" + typeString + ": " + feature.get('trip_id') + "</a></code><br/>";
                     added.push(id);
-                    content.innerHTML = content.innerHTML + "<code><a class='feature-link' onclick='mapPopup(\"" + feature.getId() + "\")'>" + feature.values_.trip_id + "</a></code><br/>";
-                
                 }
             });
 
             overlay.setPosition(evt.coordinate);
         } else if (found_features.length == 1) {
             mapPopup(found_features[0].getId());
+        }else{
+
         }
     }
 });
@@ -222,7 +248,9 @@ map.on('moveend', function(evt) {
 function mapPopup(featureid){
 
     feature = getFeatureById(featureid);
-
+    
+    featureIdSelected = featureid;
+    
     content.innerHTML = "<p>Incident details</p><code>Service Id: " + feature.get("service_id") + "<br /> Trip Id: " +
         feature.get("trip_id") + "<br /> Distance traveled: " + feature.get("distance_meters") + " meters <br/> Time of dispatch: " +
         feature.get("time_dispatch") + "<br /> Time Arrival: " + feature.get("time_arrival") + "<br/> Delay: " +
@@ -235,6 +263,7 @@ function mapPopup(featureid){
     } else {
         overlay.setPosition(feature.getGeometry().getCoordinates());
     }
+    
     updateTripsForId(featureid);
 }
 
@@ -261,6 +290,7 @@ function updateTripsForId(tripIdFull){
         var tripId = element.getId().substring(0, element.getId().lastIndexOf('.'));
         if(tripIdFull.indexOf(tripId) > -1){
             ids.push(element.getId());
+            featuresSelected.push(element);
         }
     });
     journeysTileLayer.getSource().updateParams({"FEATUREID": ids.join()});
@@ -319,4 +349,25 @@ pointsLayer.getSource().once("change", function() {
 
 function displayStatistics(){
     $("#statistics-message").dialog("open")
+}
+
+function resetFeature(){
+    featureIdSelected = "";
+    featuresSelected = [];
+    journeysTileLayer.getSource().updateParams({"FEATUREID": ""});
+    closer.click();
+}
+
+function getClosestSelectedFeature(coord){
+    var closest = Number.POSITIVE_INFINITY;
+    var closestFeatureIndex = -1;
+    featuresSelected.forEach(function(feature, index){
+        var fCoords = feature.getGeometry().getFlatCoordinates();
+        var distance = ol.sphere.WGS84.haversineDistance([fCoords[0], fCoords[1]],coord);
+        if(distance < closest) {
+            closest = distance;
+            closestFeatureIndex = index;
+        }
+    });
+    return featuresSelected[closestFeatureIndex];
 }
