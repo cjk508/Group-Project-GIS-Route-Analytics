@@ -1,6 +1,6 @@
 .ol-popup {
   font: 12px/1.5 "Helvetica Neue", Arial, Helvetica, sans-serif;
-  display: none;
+  display: block;
   position: absolute;
   background-color: white;
   -moz-box-shadow: 0 1px 4px rgba(0,0,0,0.2);

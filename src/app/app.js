@@ -32,6 +32,10 @@ var mapLayer = new ol.layer.Tile({
     })
 });
 
+//
+// Vector Layers
+//
+
 var journeysVectorLayer = new ol.layer.Vector({
     source: new ol.source.Vector({
         url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:" + detailsLayerName + "&outputFormat=application/json",
@@ -40,24 +44,9 @@ var journeysVectorLayer = new ol.layer.Vector({
     opacity: 0
 });
 
-var journeysTileLayer = new ol.layer.Tile({
-    source: new ol.source.TileWMS({
-        url: url,
-        params: {'LAYERS': "county:" + detailsLayerName, 'TILED': true},
-        servertype: 'geoserver'
-    })
-});
-
-var timeHeatmapLayer = new ol.layer.Heatmap({
-    source: new ol.source.Vector({
-        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
-        format: new ol.format.GeoJSON()
-    }),
-    radius: 10,
-    shadow: 500
-});
-
 var pointsLayer = new ol.layer.Vector({
+    title: 'Incident location',
+    group: "journeyDetails",
     source: new ol.source.Vector({
         url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
         format: new ol.format.GeoJSON()
@@ -76,34 +65,42 @@ var pointsLayer = new ol.layer.Vector({
     })
 });
 
-var densityHeatmapLayer = new ol.layer.Heatmap({
-    source: new ol.source.Vector({
-        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
-        format: new ol.format.GeoJSON()
+//
+// Tile layers
+//
+var journeysTileLayer = new ol.layer.Tile({
+    title: 'Journey Details',
+    group: "journeyDetails",
+    source: new ol.source.TileWMS({
+        url: url,
+        params: {'LAYERS': "county:" + detailsLayerName, 'TILED': true},
+        servertype: 'geoserver'
     })
 });
 
-timeHeatmapLayer.getSource().on('change', function(evt){
-    var source = evt.target;
-    if (source.getState() === 'ready') {
-        source.getFeatures().forEach(function(feature){
-            var delay = feature.get('time_sec_delayed');
-            if(delay< min_delay) min_delay = delay;
-            if(delay > max_delay) max_delay = delay;
-        });
-
-    }
+//
+// HeatMaps 
+//
+var timeHeatmapLayer = new ol.layer.Heatmap({
+    title: 'Delay time heatmap',
+    group: "heatMaps",
+    source: new ol.source.Vector({
+        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
+        format: new ol.format.GeoJSON()
+    }),
+    radius: 10,
+    shadow: 500
 });
 
-timeHeatmapLayer.getSource().on('addfeature', function(event) {
-    var delay = event.feature.get('time_sec_delayed');
-    event.feature.set('weight', normalise(delay));
-    event.feature.set('radius', delay);
+var densityHeatmapLayer = new ol.layer.Heatmap({
+    title: 'Incident density heatmap',
+    group: "heatMaps",
+    source: new ol.source.Vector({
+        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
+        format: new ol.format.GeoJSON()
+    }),
 });
 
-function normalise(n){
-    return (n-min_delay)/(max_delay - min_delay)
-}
 
 /**
  * Create an overlay to anchor the popup to the map.
@@ -115,19 +112,7 @@ var overlay = new ol.Overlay({
         duration: 250
     }
 });
-
-container.style.display = "block";
 overlay.setPosition(undefined);
-
-/**
- * Add a click handler to hide the popup.
- * @return {boolean} Don't follow the href.
- */
-closer.onclick = function() {
-    overlay.setPosition(undefined);
-    closer.blur();
-    return false;
-};
 
 // create the OpenLayers Map object
 var map = new ol.Map({
@@ -136,7 +121,12 @@ var map = new ol.Map({
     // use the Canvas renderer
     renderer: 'canvas',
     //map layers
-    layers: [mapLayer, timeHeatmapLayer, journeysTileLayer, journeysVectorLayer, pointsLayer],
+    layers: [mapLayer, 
+             journeysTileLayer, 
+             journeysVectorLayer, 
+             pointsLayer,
+             timeHeatmapLayer,
+             densityHeatmapLayer],
     // initial center and zoom of the map's view
     view: new ol.View({
         center: center,
@@ -147,12 +137,31 @@ var map = new ol.Map({
                 attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
                   collapsible: false
                 })
-              }).extend([new app.FunctionExecuteControl({
-        name:  "R",
-        title: "Reset feature selection",
-        func: resetFeature}
-    )])
+              }).extend([
+        new app.FunctionExecuteControl({
+            name:  "R",
+            title: "Reset feature selection",
+            func: resetFeature
+        }),
+        new app.LayersControl({
+            groups: {
+                heatMaps: {
+                    title: "Heat Maps",
+                    exclusive: true
+                },
+                journeyDetails: {
+                    title: "Journey information",
+                    exclusive: false
+                }
+            }
+        })
+    ])
 });
+
+
+//
+// Event driven methods.
+//
 
 map.on('singleclick', function(evt) {
 
@@ -225,76 +234,44 @@ map.on('singleclick', function(evt) {
     }
 });
 
-map.on('moveend', function(evt) {
+//map.on('moveend', function(evt) {
+//
+//    if (this.getView().getZoom() <= 8 ) {
+//        journeysVectorLayer.setVisible(false);
+//        journeysTileLayer.setVisible(false);
+//        timeHeatmapLayer.setVisible(true);
+//        pointsLayer.setVisible(false);
+//    } else if(this.getView().getZoom() <= 12){
+//        journeysVectorLayer.setVisible(true);
+//        journeysTileLayer.setVisible(true);
+//        timeHeatmapLayer.setVisible(false);
+//        pointsLayer.setVisible(false);
+//    } else {
+//        journeysVectorLayer.setVisible(true);
+//        journeysTileLayer.setVisible(true);
+//        timeHeatmapLayer.setVisible(false);
+//        pointsLayer.setVisible(true);
+//    }
+//});
 
-    if (this.getView().getZoom() <= 8 ) {
-        journeysVectorLayer.setVisible(false);
-        journeysTileLayer.setVisible(false);
-        timeHeatmapLayer.setVisible(true);
-        pointsLayer.setVisible(false);
-    } else if(this.getView().getZoom() <= 12){
-        journeysVectorLayer.setVisible(true);
-        journeysTileLayer.setVisible(true);
-        timeHeatmapLayer.setVisible(false);
-        pointsLayer.setVisible(false);
-    } else {
-        journeysVectorLayer.setVisible(true);
-        journeysTileLayer.setVisible(true);
-        timeHeatmapLayer.setVisible(false);
-        pointsLayer.setVisible(true);
+timeHeatmapLayer.getSource().on('change', function(evt){
+    var source = evt.target;
+    if (source.getState() === 'ready') {
+        source.getFeatures().forEach(function(feature){
+            var delay = feature.get('time_sec_delayed');
+            if(delay< min_delay) min_delay = delay;
+            if(delay > max_delay) max_delay = delay;
+        });
+
     }
 });
 
-function mapPopup(featureid){
+timeHeatmapLayer.getSource().on('addfeature', function(event) {
+    var delay = event.feature.get('time_sec_delayed');
+    event.feature.set('weight', normalise(delay));
+    event.feature.set('radius', delay);
+});
 
-    feature = getFeatureById(featureid);
-    
-    featureIdSelected = featureid;
-    
-    content.innerHTML = "<p>Incident details</p><code>Service Id: " + feature.get("service_id") + "<br /> Trip Id: " +
-        feature.get("trip_id") + "<br /> Distance traveled: " + feature.get("distance_meters") + " meters <br/> Time of dispatch: " +
-        feature.get("time_dispatch") + "<br /> Time Arrival: " + feature.get("time_arrival") + "<br/> Delay: " +
-        feature.get("time_sec_delayed") + " seconds <br />Vehicle type: ND10 HSL Sembcorp Ford Transit <br /> Staff Count: 2</code>";
-
-    coords = feature.getGeometry().getCoordinates();
-    
-    if (Array.isArray(coords[0])) {
-        overlay.setPosition(coords[coords.length -1]);
-    } else {
-        overlay.setPosition(feature.getGeometry().getCoordinates());
-    }
-    
-    updateTripsForId(featureid);
-}
-
-function getFeatureById(featureId) {
-    if ($.isEmptyObject(featureIdMap)){
-        journeysVectorLayer.getSource().getFeatures().forEach(function(feature) {
-            featureIdMap[feature.getId()] = feature;
-        });
-        timeHeatmapLayer.getSource().getFeatures().forEach(function(feature){
-            featureIdMap[feature.getId()] = feature;
-        });
-        pointsLayer.getSource().getFeatures().forEach(function(feature){
-            featureIdMap[feature.getId()] = feature;
-        });
-    }
-
-    return featureIdMap[featureId];
-}
-
-function updateTripsForId(tripIdFull){
-    
-    var ids = [];
-    journeysVectorLayer.getSource().getFeatures().forEach(function(element){
-        var tripId = element.getId().substring(0, element.getId().lastIndexOf('.'));
-        if(tripIdFull.indexOf(tripId) > -1){
-            ids.push(element.getId());
-            featuresSelected.push(element);
-        }
-    });
-    journeysTileLayer.getSource().updateParams({"FEATUREID": ids.join()});
-}
 
 pointsLayer.getSource().once("change", function() {
 
@@ -347,6 +324,61 @@ pointsLayer.getSource().once("change", function() {
     )
 });
 
+//
+// Helper functions
+//
+
+function mapPopup(featureid){
+
+    feature = getFeatureById(featureid);
+    
+    featureIdSelected = featureid;
+    
+    content.innerHTML = "<p>Incident details</p><code>Service Id: " + feature.get("service_id") + "<br /> Trip Id: " +
+        feature.get("trip_id") + "<br /> Distance traveled: " + feature.get("distance_meters") + " meters <br/> Time of dispatch: " +
+        feature.get("time_dispatch") + "<br /> Time Arrival: " + feature.get("time_arrival") + "<br/> Delay: " +
+        feature.get("time_sec_delayed") + " seconds <br />Vehicle type: ND10 HSL Sembcorp Ford Transit <br /> Staff Count: 2</code>";
+
+    coords = feature.getGeometry().getCoordinates();
+    
+    if (Array.isArray(coords[0])) {
+        overlay.setPosition(coords[coords.length -1]);
+    } else {
+        overlay.setPosition(feature.getGeometry().getCoordinates());
+    }
+    
+    updateTripsForId(featureid);
+}
+
+function getFeatureById(featureId) {
+    if ($.isEmptyObject(featureIdMap)){
+        journeysVectorLayer.getSource().getFeatures().forEach(function(feature) {
+            featureIdMap[feature.getId()] = feature;
+        });
+        timeHeatmapLayer.getSource().getFeatures().forEach(function(feature){
+            featureIdMap[feature.getId()] = feature;
+        });
+        pointsLayer.getSource().getFeatures().forEach(function(feature){
+            featureIdMap[feature.getId()] = feature;
+        });
+    }
+
+    return featureIdMap[featureId];
+}
+
+function updateTripsForId(tripIdFull){
+    
+    var ids = [];
+    journeysVectorLayer.getSource().getFeatures().forEach(function(element){
+        var tripId = element.getId().substring(0, element.getId().lastIndexOf('.'));
+        if(tripIdFull.indexOf(tripId) > -1){
+            ids.push(element.getId());
+            featuresSelected.push(element);
+        }
+    });
+    journeysTileLayer.getSource().updateParams({"FEATUREID": ids.join()});
+}
+
 function displayStatistics(){
     $("#statistics-message").dialog("open")
 }
@@ -371,3 +403,17 @@ function getClosestSelectedFeature(coord){
     });
     return featuresSelected[closestFeatureIndex];
 }
+
+function normalise(n){
+    return (n-min_delay)/(max_delay - min_delay)
+}
+
+/**
+ * Add a click handler to hide the popup.
+ * @return {boolean} Don't follow the href.
+ */
+closer.onclick = function() {
+    overlay.setPosition(undefined);
+    closer.blur();
+    return false;
+};
