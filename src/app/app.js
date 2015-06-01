@@ -103,6 +103,7 @@ var timeHeatmapLayer = new ol.layer.Heatmap({
 var densityHeatmapLayer = new ol.layer.Heatmap({
     title: 'Incident density heatmap',
     group: "heatMaps",
+    visible: false,
     source: overviewVectorSource
 });
 
