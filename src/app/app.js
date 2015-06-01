@@ -106,9 +106,16 @@ var densityHeatmapLayer = new ol.layer.Heatmap({
     source: overviewVectorSource
 });
 
+var clusterSource = new ol.source.Cluster({
+  distance: 40,
+  source: overviewVectorSource
+});
+
 var styleCache = {};
 var clusters = new ol.layer.Vector({
-  source: overviewVectorSource,
+    title: 'Incident cluster map',
+    group: "heatMaps",
+  source: clusterSource,
   style: function(feature, resolution) {
     var size = feature.get('features').length;
     var style = styleCache[size];
@@ -177,7 +184,8 @@ var map = new ol.Map({
         journeysVectorLayer,
         pointsLayer,
         timeHeatmapLayer,
-        densityHeatmapLayer],
+        densityHeatmapLayer,
+        clusters],
     // initial center and zoom of the map's view
     view: new ol.View({
         center: center,
