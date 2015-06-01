@@ -193,8 +193,8 @@ var map = new ol.Map({
 // Event driven methods.
 //
 
-journeysVectorLayer.on("change:visible", function(layer) {
-    if (layer.getVisible()) {
+journeysTileLayer.on("change:visible", function() {
+    if (this.getVisible()) {
         legendControl.show();
     } else {
         legendControl.hide();

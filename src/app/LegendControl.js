@@ -19,18 +19,19 @@ app.LegendControl = function(opt_options) {
 
 };
 
+ol.inherits(app.LegendControl, ol.control.Control);
+
 /**
- * Show this popup.
+ * Show this legend.
  */
 app.LegendControl.prototype.show = function() {
-    $(this.getElement()).show();
+    $(this.element).show();
 };
 
 /**
- * Hide this popup.
+ * Hide this legend.
  */
 app.LegendControl.prototype.hide = function() {
-    $(this.getElement()).hide();
+    $(this.element).hide();
 };
 
-ol.inherits(app.LegendControl, ol.control.Control);
