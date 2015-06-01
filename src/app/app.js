@@ -234,8 +234,14 @@ map.on('singleclick', function(evt) {
     bottomleft = [pixel[0] - 15, pixel[1] - 15];
 
     extent = ol.extent.boundingExtent([map.getCoordinateFromPixel(topright), map.getCoordinateFromPixel(bottomleft)]);
+    found_features = [];
 
-    if (pointsLayer.getVisible() && pointsLayer.getSource().getFeaturesInExtent(extent).length == 1 ){
+    if(featureIdSelected)
+    {
+            found_features = [featuresSelectedSource.getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel)) ];
+    }
+
+    if (pointsLayer.getVisible() && pointsLayer.getSource().getFeaturesInExtent(extent).length == 1 && !featureIdSelected){
 
         feature = pointsLayer.getSource().getFeaturesInExtent(extent)[0];
 
@@ -243,7 +249,7 @@ map.on('singleclick', function(evt) {
 
     } else {
 
-        found_features = [];
+
 
 //        if (pointsLayer.getVisible()) {
 //            pointsLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
@@ -261,11 +267,6 @@ map.on('singleclick', function(evt) {
             journeysVectorLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
                 found_features.push(feature)
             });
-        }
-
-        if(featureIdSelected)
-        {
-            found_features = [featuresSelectedSource.getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel)) ];
         }
 
         if (found_features.length > 1) {
