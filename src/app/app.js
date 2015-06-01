@@ -70,7 +70,7 @@ var pointsLayer = new ol.layer.Vector({
                 color: 'rgb(0,0,0)',
                 width: 1.25
             }),
-            radius: 8
+            radius: 4
         })
     })
 });
