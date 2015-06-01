@@ -106,7 +106,7 @@ var densityHeatmapLayer = new ol.layer.Heatmap({
     source: new ol.source.Vector({
         url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
         format: new ol.format.GeoJSON()
-    }),
+    })
 });
 
 //
@@ -122,17 +122,17 @@ var overlay = new ol.Overlay({
 overlay.setPosition(undefined);
 
 var imageStyle = new ol.style.Circle({
-  radius: 5,
-  fill: null,
-  stroke: new ol.style.Stroke({
-    color: 'rgba(255,0,0,0.9)',
-    width: 1
-  })
+    radius: 5,
+    fill: null,
+    stroke: new ol.style.Stroke({
+        color: 'rgba(255,0,0,0.9)',
+        width: 1
+    })
 });
 
 var strokeStyle = new ol.style.Stroke({
-  color: 'rgba(255,0,0,0.9)',
-  width: 1
+    color: 'rgba(255,0,0,0.9)',
+    width: 1
 });
 
 
@@ -145,12 +145,12 @@ var map = new ol.Map({
     // use the Canvas renderer
     renderer: 'canvas',
     //map layers
-    layers: [mapLayer, 
-             journeysTileLayer, 
-             journeysVectorLayer, 
-             pointsLayer,
-             timeHeatmapLayer,
-             densityHeatmapLayer],
+    layers: [mapLayer,
+        journeysTileLayer,
+        journeysVectorLayer,
+        pointsLayer,
+        timeHeatmapLayer,
+        densityHeatmapLayer],
     // initial center and zoom of the map's view
     view: new ol.View({
         center: center,
@@ -158,10 +158,10 @@ var map = new ol.Map({
     }),
     overlays: [overlay],
     controls: ol.control.defaults({
-                attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
-                  collapsible: false
-                })
-              }).extend([
+        attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+            collapsible: false
+        })
+    }).extend([
         new app.FunctionExecuteControl({
             name:  "R",
             title: "Reset feature selection",
@@ -192,7 +192,7 @@ map.on('singleclick', function(evt) {
     closer.click();
 
     pixel = evt.pixel;
-    
+
     topright = [pixel[0] + 15, pixel[1] + 15];
     bottomleft = [pixel[0] - 15, pixel[1] - 15];
 
@@ -225,15 +225,15 @@ map.on('singleclick', function(evt) {
                 found_features.push(feature)
             });
         }
-        
+
         if(featureIdSelected)
         {
             found_features = [featuresSelectedSource.getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel)) ];
         }
-        
+
         if (found_features.length > 1) {
             content.innerHTML = "<p>Select an Incident</p>";
-            
+
             var added = [];
             found_features.forEach(function (feature) {
                 var id = feature.get('trip_id')
@@ -274,23 +274,23 @@ map.on('singleclick', function(evt) {
 //});
 
 map.on('pointermove', function(evt) {
-  if (evt.dragging) {
-    return;
-  }
-  var coordinate = map.getEventCoordinate(evt.originalEvent);
-  displaySnap(coordinate);
+    if (evt.dragging) {
+        return;
+    }
+    var coordinate = map.getEventCoordinate(evt.originalEvent);
+    displaySnap(coordinate);
 });
 
 map.on('postcompose', function(evt) {
-  var vectorContext = evt.vectorContext;
-  if (point !== null) {
-    vectorContext.setImageStyle(imageStyle);
-    vectorContext.drawPointGeometry(point);
-  }
-  if (line !== null) {
-    vectorContext.setFillStrokeStyle(null, strokeStyle);
-    vectorContext.drawLineStringGeometry(line);
-  }
+    var vectorContext = evt.vectorContext;
+    if (point !== null) {
+        vectorContext.setImageStyle(imageStyle);
+        vectorContext.drawPointGeometry(point);
+    }
+    if (line !== null) {
+        vectorContext.setFillStrokeStyle(null, strokeStyle);
+        vectorContext.drawLineStringGeometry(line);
+    }
 });
 
 timeHeatmapLayer.getSource().on('change', function(evt){
@@ -370,22 +370,24 @@ pointsLayer.getSource().once("change", function() {
 function mapPopup(featureid){
 
     feature = getFeatureById(featureid);
-    
+
     featureIdSelected = featureid;
-    
+
     content.innerHTML = "<p>Incident details</p><code>Service Id: " + feature.get("service_id") + "<br /> Trip Id: " +
         feature.get("trip_id") + "<br /> Distance traveled: " + feature.get("distance_meters") + " meters <br/> Time of dispatch: " +
         feature.get("time_dispatch") + "<br /> Time Arrival: " + feature.get("time_arrival") + "<br/> Delay: " +
         feature.get("time_sec_delayed") + " seconds <br />Vehicle type: ND10 HSL Sembcorp Ford Transit <br /> Staff Count: 2</code>";
 
     coords = feature.getGeometry().getCoordinates();
-    
+
+    $('.ol-popup').css('top', '').css('left', '').css('bottom', '').css('right', '');
+
     if (Array.isArray(coords[0])) {
         overlay.setPosition(coords[coords.length -1]);
     } else {
         overlay.setPosition(feature.getGeometry().getCoordinates());
     }
-    
+
     updateTripsForId(featureid);
 }
 
@@ -406,7 +408,7 @@ function getFeatureById(featureId) {
 }
 
 function updateTripsForId(tripIdFull){
-    
+
     var ids = [];
     journeysVectorLayer.getSource().getFeatures().forEach(function(element){
         var tripId = element.getId().substring(0, element.getId().lastIndexOf('.'));
@@ -424,6 +426,8 @@ function displayStatistics(){
 
 function resetFeature(){
     featureIdSelected = "";
+    point = null;
+    line = null;
     featuresSelectedSource = new ol.source.Vector();
     journeysTileLayer.getSource().updateParams({"FEATUREID": ""});
     closer.click();
@@ -448,24 +452,24 @@ closer.onclick = function() {
 // FML
 //
 var displaySnap = function(coordinate) {
-  var closestFeature = featuresSelectedSource.getClosestFeatureToCoordinate(coordinate);
-  if (closestFeature === null) {
-    point = null;
-    line = null;
-  } else {
-    var geometry = closestFeature.getGeometry();
-    var closestPoint = geometry.getClosestPoint(coordinate);
-    if (point === null) {
-      point = new ol.geom.Point(closestPoint);
+    var closestFeature = featuresSelectedSource.getClosestFeatureToCoordinate(coordinate);
+    if (closestFeature === null) {
+        point = null;
+        line = null;
     } else {
-      point.setCoordinates(closestPoint);
+        var geometry = closestFeature.getGeometry();
+        var closestPoint = geometry.getClosestPoint(coordinate);
+        if (point === null) {
+            point = new ol.geom.Point(closestPoint);
+        } else {
+            point.setCoordinates(closestPoint);
+        }
+        var coordinates = [coordinate, [closestPoint[0], closestPoint[1]]];
+        if (line === null) {
+            line = new ol.geom.LineString(coordinates);
+        } else {
+            line.setCoordinates(coordinates);
+        }
     }
-    var coordinates = [coordinate, [closestPoint[0], closestPoint[1]]];
-    if (line === null) {
-      line = new ol.geom.LineString(coordinates);
-    } else {
-      line.setCoordinates(coordinates);
-    }
-  }
-  map.render();
+    map.render();
 };
