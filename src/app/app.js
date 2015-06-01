@@ -136,6 +136,12 @@ var strokeStyle = new ol.style.Stroke({
     width: 1
 });
 
+var legendControl = new app.LegendControl({
+    url: url,
+    layer: "county:details",
+    style: "Rules_Details_Fat"
+});
+
 //
 // create the OpenLayers Map object
 //
@@ -179,17 +185,21 @@ var map = new ol.Map({
                 }
             }
         }),
-        new app.LegendControl({
-            url: url,
-            layer: "county:details",
-            style: "Rules_Details_Fat"
-        })
+        legendControl
     ])
 });
 
 //
 // Event driven methods.
 //
+
+journeysVectorLayer.on("change:visible", function(layer) {
+    if (layer.getVisible()) {
+        legendControl.show();
+    } else {
+        legendControl.hide();
+    }
+});
 
 map.on('singleclick', function(evt) {
 

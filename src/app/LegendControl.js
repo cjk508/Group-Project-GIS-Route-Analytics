@@ -19,4 +19,18 @@ app.LegendControl = function(opt_options) {
 
 };
 
+/**
+ * Show this popup.
+ */
+app.LegendControl.prototype.show = function() {
+    $(this.getElement()).show();
+};
+
+/**
+ * Hide this popup.
+ */
+app.LegendControl.prototype.hide = function() {
+    $(this.getElement()).hide();
+};
+
 ol.inherits(app.LegendControl, ol.control.Control);
