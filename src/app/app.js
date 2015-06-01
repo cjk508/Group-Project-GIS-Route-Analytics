@@ -115,6 +115,7 @@ var styleCache = {};
 var clusters = new ol.layer.Vector({
     title: 'Incident cluster map',
     group: "heatMaps",
+    visible: false,
   source: clusterSource,
   style: function(feature, resolution) {
     var size = feature.get('features').length;
