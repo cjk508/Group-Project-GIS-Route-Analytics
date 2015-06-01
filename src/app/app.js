@@ -4,6 +4,7 @@
  * @require Popup.js
  * @require LayersControl.js
  * @require FunctionExecuteControl.js
+ * @require LegendControl.js
  */
 
 // ========= config section ================================================
@@ -93,7 +94,7 @@ var journeysTileLayer = new ol.layer.Tile({
 //
 
 var timeHeatmapLayer = new ol.layer.Heatmap({
-    title: 'Delay time heatmap',
+    title: 'Delay Time Heatmap',
     group: "heatMaps",
     source: overviewVectorSource,
     radius: 10,
@@ -101,7 +102,7 @@ var timeHeatmapLayer = new ol.layer.Heatmap({
 });
 
 var densityHeatmapLayer = new ol.layer.Heatmap({
-    title: 'Incident density heatmap',
+    title: 'Incident Density Heatmap',
     group: "heatMaps",
     visible: false,
     source: overviewVectorSource
@@ -171,6 +172,11 @@ var strokeStyle = new ol.style.Stroke({
     width: 1
 });
 
+var legendControl = new app.LegendControl({
+    url: url,
+    layer: "county:details",
+    style: "Rules_Details_Fat"
+});
 
 //
 // create the OpenLayers Map object
@@ -182,12 +188,11 @@ var map = new ol.Map({
     renderer: 'canvas',
     //map layers
     layers: [mapLayer,
-        journeysTileLayer,
-        journeysVectorLayer,
-        pointsLayer,
         timeHeatmapLayer,
         densityHeatmapLayer,
-        clusters],
+        journeysTileLayer,
+        journeysVectorLayer,
+        pointsLayer],
     // initial center and zoom of the map's view
     view: new ol.View({
         center: center,
@@ -215,14 +220,22 @@ var map = new ol.Map({
                     exclusive: false
                 }
             }
-        })
+        }),
+        legendControl
     ])
 });
-
 
 //
 // Event driven methods.
 //
+
+journeysTileLayer.on("change:visible", function() {
+    if (this.getVisible()) {
+        legendControl.show();
+    } else {
+        legendControl.hide();
+    }
+});
 
 map.on('singleclick', function(evt) {
 
