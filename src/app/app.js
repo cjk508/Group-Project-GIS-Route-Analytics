@@ -95,7 +95,7 @@ var journeysTileLayer = new ol.layer.Tile({
 var timeHeatmapLayer = new ol.layer.Heatmap({
     title: 'Delay time heatmap',
     group: "heatMaps",
-    source: overviewVector,
+    source: overviewVectorSource,
     radius: 10,
     shadow: 500
 });
