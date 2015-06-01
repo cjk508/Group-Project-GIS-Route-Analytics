@@ -180,7 +180,9 @@ var map = new ol.Map({
             }
         }),
         new app.LegendControl({
-            url: url
+            url: url,
+            layer: "county:details",
+            style: "Rules_Details_Fat"
         })
     ])
 });
