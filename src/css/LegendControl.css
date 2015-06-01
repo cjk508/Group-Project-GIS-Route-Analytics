@@ -1,0 +1,15 @@
+.legend-control {
+    padding-top: 5px;
+    border-radius: 5px;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background-color: white;
+}
+
+.legend-control span {
+    font-weight: bold;
+    list-style-type: none;
+    padding-left: 10px;
+    padding-right: 10px;
+}

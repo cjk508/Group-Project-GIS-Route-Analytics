@@ -4,6 +4,7 @@
  * @require Popup.js
  * @require LayersControl.js
  * @require FunctionExecuteControl.js
+ * @require LegendControl.js
  */
 
 // ========= config section ================================================
@@ -135,7 +136,6 @@ var strokeStyle = new ol.style.Stroke({
     width: 1
 });
 
-
 //
 // create the OpenLayers Map object
 //
@@ -178,10 +178,12 @@ var map = new ol.Map({
                     exclusive: false
                 }
             }
+        }),
+        new app.LegendControl({
+            url: url
         })
     ])
 });
-
 
 //
 // Event driven methods.
