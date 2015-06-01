@@ -91,7 +91,7 @@ var journeysTileLayer = new ol.layer.Tile({
 // HeatMaps 
 //
 var timeHeatmapLayer = new ol.layer.Heatmap({
-    title: 'Delay time heatmap',
+    title: 'Delay Time Heatmap',
     group: "heatMaps",
     source: new ol.source.Vector({
         url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
@@ -102,7 +102,7 @@ var timeHeatmapLayer = new ol.layer.Heatmap({
 });
 
 var densityHeatmapLayer = new ol.layer.Heatmap({
-    title: 'Incident density heatmap',
+    title: 'Incident Density Heatmap',
     group: "heatMaps",
     source: new ol.source.Vector({
         url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
@@ -152,11 +152,11 @@ var map = new ol.Map({
     renderer: 'canvas',
     //map layers
     layers: [mapLayer,
+        timeHeatmapLayer,
+        densityHeatmapLayer,
         journeysTileLayer,
         journeysVectorLayer,
-        pointsLayer,
-        timeHeatmapLayer,
-        densityHeatmapLayer],
+        pointsLayer],
     // initial center and zoom of the map's view
     view: new ol.View({
         center: center,
