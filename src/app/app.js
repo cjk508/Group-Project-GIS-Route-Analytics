@@ -114,7 +114,7 @@ var clusterSource = new ol.source.Cluster({
 });
 
 var styleCache = {};
-var clusters = new ol.layer.Vector({
+var clustersLayer = new ol.layer.Vector({
     title: 'Incident cluster map',
     group: "heatMaps",
     visible: false,
@@ -192,7 +192,8 @@ var map = new ol.Map({
         densityHeatmapLayer,
         journeysTileLayer,
         journeysVectorLayer,
-        pointsLayer],
+        pointsLayer,
+        clustersLayer],
     // initial center and zoom of the map's view
     view: new ol.View({
         center: center,
@@ -459,7 +460,7 @@ function updateTripsForId(tripIdFull){
 
     var ids = [];
     journeysVectorLayer.getSource().getFeatures().forEach(function(element){
-        var tripId = element.getId().substring(0, element.getId().lastIndexOf('.'));
+        var tripId = element.getId().substring(0, element.getId().lastIndexOf('.')).substring(element.getId().indexOf('.'));
         if(tripIdFull.indexOf(tripId) > -1){
             ids.push(element.getId());
             featuresSelectedSource.addFeature(element);
