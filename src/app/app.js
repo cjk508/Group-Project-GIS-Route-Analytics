@@ -234,22 +234,19 @@ map.on('singleclick', function(evt) {
     bottomleft = [pixel[0] - 15, pixel[1] - 15];
 
     extent = ol.extent.boundingExtent([map.getCoordinateFromPixel(topright), map.getCoordinateFromPixel(bottomleft)]);
-    found_features = [];
+
 
     if(featureIdSelected)
     {
-            found_features = [featuresSelectedSource.getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel)) ];
-    }
-
-    if (pointsLayer.getVisible() && pointsLayer.getSource().getFeaturesInExtent(extent).length == 1 && !featureIdSelected){
+        mapPopup(featuresSelectedSource.getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel)).getId());
+    }else if (pointsLayer.getVisible() && pointsLayer.getSource().getFeaturesInExtent(extent).length == 1 && !featureIdSelected){
 
         feature = pointsLayer.getSource().getFeaturesInExtent(extent)[0];
 
         mapPopup(feature.getId());
 
     } else {
-
-
+        found_features = [];
 
 //        if (pointsLayer.getVisible()) {
 //            pointsLayer.getSource().forEachFeatureInExtent(extent, function (feature) {
