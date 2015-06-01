@@ -29,6 +29,11 @@ var featuresSelectedSource = new ol.source.Vector();
 var point = null;
 var line = null;
 
+var overviewVectorSource = new ol.source.Vector({
+        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
+        format: new ol.format.GeoJSON()
+    });
+
 //
 // Tile Layer
 //
@@ -55,10 +60,7 @@ var journeysVectorLayer = new ol.layer.Vector({
 var pointsLayer = new ol.layer.Vector({
     title: 'Incident location',
     group: "journeyDetails",
-    source: new ol.source.Vector({
-        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
-        format: new ol.format.GeoJSON()
-    }),
+    source:overviewVectorSource,
     style: new ol.style.Style({
         image: new ol.style.Circle({
             fill: new ol.style.Fill({
@@ -68,7 +70,7 @@ var pointsLayer = new ol.layer.Vector({
                 color: 'rgb(0,0,0)',
                 width: 1.25
             }),
-            radius: 15
+            radius: 8
         })
     })
 });
@@ -89,13 +91,11 @@ var journeysTileLayer = new ol.layer.Tile({
 //
 // HeatMaps 
 //
+
 var timeHeatmapLayer = new ol.layer.Heatmap({
     title: 'Delay time heatmap',
     group: "heatMaps",
-    source: new ol.source.Vector({
-        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
-        format: new ol.format.GeoJSON()
-    }),
+    source: overviewVector,
     radius: 10,
     shadow: 500
 });
@@ -103,10 +103,37 @@ var timeHeatmapLayer = new ol.layer.Heatmap({
 var densityHeatmapLayer = new ol.layer.Heatmap({
     title: 'Incident density heatmap',
     group: "heatMaps",
-    source: new ol.source.Vector({
-        url: url + "service=WFS&version=2.0.0&request=GetFeature&typeName=county:overview&outputFormat=application/json",
-        format: new ol.format.GeoJSON()
-    })
+    source: overviewVectorSource
+});
+
+var styleCache = {};
+var clusters = new ol.layer.Vector({
+  source: overviewVectorSource,
+  style: function(feature, resolution) {
+    var size = feature.get('features').length;
+    var style = styleCache[size];
+    if (!style) {
+      style = [new ol.style.Style({
+        image: new ol.style.Circle({
+          radius: 10,
+          stroke: new ol.style.Stroke({
+            color: '#fff'
+          }),
+          fill: new ol.style.Fill({
+            color: '#3399CC'
+          })
+        }),
+        text: new ol.style.Text({
+          text: size.toString(),
+          fill: new ol.style.Fill({
+            color: '#fff'
+          })
+        })
+      })];
+      styleCache[size] = style;
+    }
+    return style;
+  }
 });
 
 //
