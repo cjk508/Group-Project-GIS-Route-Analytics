@@ -281,14 +281,14 @@ map.on('singleclick', function(evt) {
         }
 
         if (found_features.length > 1) {
-            content.innerHTML = "<p>Select an Incident</p>";
+            content.innerHTML = "<p onmouseexit(\"" +resetFeature() + "\")>Select an Incident</p>";
 
             var added = [];
             found_features.forEach(function (feature) {
                 var id = feature.get('trip_id')
                 if( added.indexOf(id) < 0){
                     var typeString = stringMap[feature.getId().substring(0, feature.getId().indexOf('.'))];
-                    content.innerHTML = content.innerHTML + "<code><a class='feature-link' onclick='mapPopup(\"" + feature.getId() + "\")'>" + typeString + ": " + feature.get('trip_id') + "</a></code><br/>";
+                    content.innerHTML = content.innerHTML + "<code><a class='feature-link' onmouseover='updateTripsForId(\"" + feature.getId() + "\")' onclick='mapPopup(\"" + feature.getId() + "\")'>" + typeString + ": " + feature.get('trip_id') + "</a></code><br/>";
                     added.push(id);
                 }
             });
@@ -419,7 +419,7 @@ pointsLayer.getSource().once("change", function() {
 function mapPopup(featureid){
 
     feature = getFeatureById(featureid);
-
+resetFeature();
     featureIdSelected = featureid;
     if(featureid.startsWith("overview")){
         content.innerHTML = "<p>Incident overview</p><code>Service Id: " + feature.get("service_id") 
@@ -432,7 +432,7 @@ function mapPopup(featureid){
     }else{
         content.innerHTML = "<p>Incident details</p><code>"
         + "Trip Id: " + feature.get("trip_id") 
-        + "<br /> Distance traveled: " + feature.get("distance_meters") 
+        + "<br /> Distance traveled: " + feature.get("distance_meters")  + " meters"
         + "<br/> Delay: " + feature.get("time_sec_delayed") 
         + " seconds <br />Vehicle type: ND10 HSL Sembcorp Ford Transit <br /> Staff Count: 2</code>";
     }
@@ -468,6 +468,7 @@ function getFeatureById(featureId) {
 function updateTripsForId(tripIdFull){
 
     var ids = [];
+
     journeysVectorLayer.getSource().getFeatures().forEach(function(element){
         var tripId = element.getId().substring(0, element.getId().lastIndexOf('.')).substring(element.getId().indexOf('.'));
         if(tripIdFull.indexOf(tripId) > -1){
@@ -475,6 +476,7 @@ function updateTripsForId(tripIdFull){
             featuresSelectedSource.addFeature(element);
         }
     });
+    
     journeysTileLayer.getSource().updateParams({"FEATUREID": ids.join()});
 }
 
