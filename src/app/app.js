@@ -206,9 +206,15 @@ var map = new ol.Map({
         })
     }).extend([
         new app.FunctionExecuteControl({
+            name:  "D",
+            title: "Center and zoom to default position.",
+            func: function(){map.getView().setCenter(center); map.getView().setZoom(zoom); return false;}
+        }),
+        new app.FunctionExecuteControl({
             name:  "R",
             title: "Reset feature selection",
-            func: resetFeature
+            func: resetFeature,
+            top: '95px'
         }),
         new app.LayersControl({
             groups: {
@@ -488,7 +494,7 @@ function resetFeature(){
     featureIdSelected = "";
     point = null;
     line = null;
-    featuresSelectedSource = new ol.source.Vector();
+    featuresSelectedSource.clear();
     journeysTileLayer.getSource().updateParams({"FEATUREID": ""});
     closer.click();
 }
