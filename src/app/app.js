@@ -421,12 +421,21 @@ function mapPopup(featureid){
     feature = getFeatureById(featureid);
 
     featureIdSelected = featureid;
-
-    content.innerHTML = "<p>Incident details</p><code>Service Id: " + feature.get("service_id") + "<br /> Trip Id: " +
-        feature.get("trip_id") + "<br /> Distance traveled: " + feature.get("distance_meters") + " meters <br/> Time of dispatch: " +
-        feature.get("time_dispatch") + "<br /> Time Arrival: " + feature.get("time_arrival") + "<br/> Delay: " +
-        feature.get("time_sec_delayed") + " seconds <br />Vehicle type: ND10 HSL Sembcorp Ford Transit <br /> Staff Count: 2</code>";
-
+    if(featureid.startsWith("overview")){
+        content.innerHTML = "<p>Incident overview</p><code>Service Id: " + feature.get("service_id") 
+        + "<br /> Trip Id: " + feature.get("trip_id") 
+        + "<br /> Distance traveled: " + feature.get("distance_meters") 
+        + " meters <br/> Time of dispatch: " + feature.get("time_dispatch") 
+        + "<br /> Time Arrival: " + feature.get("time_arrival") 
+        + "<br/> Delay: " + feature.get("time_sec_delayed") 
+        + " seconds <br />Vehicle type: ND10 HSL Sembcorp Ford Transit <br /> Staff Count: 2</code>";
+    }else{
+        content.innerHTML = "<p>Incident details</p><code>"
+        + "Trip Id: " + feature.get("trip_id") 
+        + "<br /> Distance traveled: " + feature.get("distance_meters") 
+        + "<br/> Delay: " + feature.get("time_sec_delayed") 
+        + " seconds <br />Vehicle type: ND10 HSL Sembcorp Ford Transit <br /> Staff Count: 2</code>";
+    }
     coords = feature.getGeometry().getCoordinates();
 
     $('.ol-popup').css('top', '').css('left', '').css('bottom', '').css('right', '');
