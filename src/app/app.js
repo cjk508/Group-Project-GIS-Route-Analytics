@@ -59,7 +59,7 @@ var journeysVectorLayer = new ol.layer.Vector({
 });
 
 var pointsLayer = new ol.layer.Vector({
-    title: 'Incident location',
+    title: 'Incident Location',
     group: "journeyDetails",
     source:overviewVectorSource,
     style: new ol.style.Style({
@@ -115,7 +115,7 @@ var clusterSource = new ol.source.Cluster({
 
 var styleCache = {};
 var clustersLayer = new ol.layer.Vector({
-    title: 'Incident cluster map',
+    title: 'Incident Cluster Map',
     group: "heatMaps",
     visible: false,
   source: clusterSource,
