@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="src/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="src/font-awesome/css/font-awesome.css">
+    <link rel="stylesheet" href="src/ol3/ol.css">
+    <link rel="stylesheet" href="src/css/Popup.css">
+    <link rel="stylesheet" href="src/css/LayersControl.css">
+    <link rel="stylesheet" href="src/css/FunctionExecuteControl.css">
+    <link rel="stylesheet" href="src/css/LegendControl.css">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+    <style>
+        .layers-control {
+            position: fixed;
+            bottom: 10px;
+            top: auto;
+        }
+        .legend-control {
+            position: fixed;
+            bottom: 210px;
+            top: auto;
+        }
+        html, body, #map {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+        body {
+            padding-top: 50px;
+        }
+        .navbar .navbar-brand {
+            font-weight: bold;
+            font-size: 25px;
+            color: white;
+        }
+        #popup-content {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+    <script src="src/ol3/ol-debug.js"></script>
+    <script src="src/jquery/jquery.js"></script>
+    <script src="src/bootstrap/js/bootstrap.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+    <title>Massively Ambitious Project (MAP)</title>
+</head>
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">Massively Ambitious Project (MAP)</a>
+    </div>
+    <div class="navbar-collapse collapse">
+        <ul class="nav navbar-nav navbar-right">
+            <li><a href="#" style="right:10px" data-toggle="collapse" data-target=".navbar-collapse.in" onclick="displayStatistics(); return false;"><i class="fa fa-pencil-square"></i>&nbsp;&nbsp;Statistics</a></li>
+        </ul>
+    </div><!--/.navbar-collapse -->
+</div>
+<div id="map">
+    <div id="popup" class="ol-popup">
+        <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+        <div id="popup-content" class="popup-content" />
+        <input id="time" type="range" value="0" steps="1" />
+        <div class="span4 pull-right">
+          <div id="info" class="alert alert-success">
+            &nbsp;
+          </div>
+        </div>
+    </div>
+</div>
+<div id="statistics-message" title="Statistics">
+
+</div>
+<script src="lib/app.js"></script>
+</body>
+</html>
